@@ -8,6 +8,16 @@ public class DatosArrayList <ArrayList>{
     private String nombre, descri, tipo;
     private Drawable img;
 
+    public DatosArrayList(String nombre, String descri, String tipo, Drawable img) {
+        this.nombre = nombre;
+        this.descri = descri;
+        this.tipo = tipo;
+        this.img = img;
+    }
+
+    public DatosArrayList() {
+    }
+
     public String getNombre() {
         return nombre;
     }

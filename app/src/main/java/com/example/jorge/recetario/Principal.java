@@ -76,17 +76,16 @@ public class Principal extends Activity {
     }
 
     private void initComponents(){
-        DatosArrayList aux = new DatosArrayList();
-        final String nom = "Montaditos de Salmón";
-        final String desc = "En primer lugar picamos la cebolla y la pochamos en una sartén con un poco " +
-                "de aceite de oliva. Mientras tanto picamos el salmón, lo ponemos en un bol.";
-        final String tipo = "Entrante";
-        Drawable img = this.getResources().getDrawable(R.drawable.entrante);
-        aux.setNombre(nom);
-        aux.setDescri(desc);
-        aux.setTipo(tipo);
-        aux.setImg(img);
-        datosv2.add(aux);
+        DatosArrayList dato1 = new DatosArrayList("Montaditos de Salmón","En primer lugar picamos la cebolla y la pochamos en una sartén con un poco " +
+                "de aceite de oliva. Mientras tanto picamos el salmón, lo ponemos en un bol.","Entrante",this.getResources().getDrawable(R.drawable.entrante));
+        DatosArrayList dato2 = new DatosArrayList("Paella Valenciana","La receta de la paella valenciana tal y como se elabora en la huerta de Valencia" +
+                " de forma tradicional.","Plato",this.getResources().getDrawable(R.drawable.plato));
+        DatosArrayList dato3 = new DatosArrayList("Tiramisú","El Tiramisu es un postre de origen italiano que es realmente popular" +
+                " en casi todo el mundo, y concretamente en nuestro pais tiene bastante éxito.","Postre",this.getResources().getDrawable(R.drawable.postre));
+
+        datosv2.add(dato1);
+        datosv2.add(dato2);
+        datosv2.add(dato3);
         aal = new AdaptadorArrayList(this, R.layout.lista_detalle, datosv2);
         final ListView lv = (ListView) findViewById(R.id.lvLista);
         lv.setAdapter(aal);
@@ -111,7 +110,8 @@ public class Principal extends Activity {
         final View vista = inflater.inflate(R.layout.dialogo_anadir, null);
         alert.setView(vista);
         Spinner spinner = (Spinner) vista.findViewById(R.id.sTipo);
-        ArrayAdapter<CharSequence> adaptador = ArrayAdapter.createFromResource(this, R.array.tipos, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adaptador = ArrayAdapter.createFromResource(this, R.array.tipos,
+                                                            android.R.layout.simple_spinner_item);
         adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adaptador);
         alert.setPositiveButton(android.R.string.ok,
