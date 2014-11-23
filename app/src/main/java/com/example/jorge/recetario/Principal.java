@@ -34,16 +34,15 @@ import java.util.ArrayList;
 
 
 public class Principal extends Activity {
-    private ArrayList<Receta> datosv2 = new ArrayList<Receta>();
+    private ArrayList<Receta> alReceta = new ArrayList<Receta>();
     private AdaptadorArrayList aal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.actividad_principal);
-        //initComponents();
 
-        aal = new AdaptadorArrayList(this, R.layout.lista_detalle, datosv2);
+        aal = new AdaptadorArrayList(this, R.layout.lista_detalle, alReceta);
         final ListView lv = (ListView) findViewById(R.id.lvLista);
         lv.setAdapter(aal);
         registerForContextMenu(lv);
@@ -69,10 +68,9 @@ public class Principal extends Activity {
         if (id == R.id.action_settings) {
             return true;
         }else if (id == R.id.action_anadir){
-            //return anadir();
             Intent i = new Intent(this,Anadir.class);
             Bundle b=new Bundle();
-            b.putParcelableArrayList("recetas",datosv2);
+            b.putParcelableArrayList("recetas",alReceta);
             i.putExtras(b);
             startActivity(i);
         }
@@ -85,7 +83,7 @@ public class Principal extends Activity {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         int index = info.position;
         if (id == R.id.action_borrar) {
-            datosv2.remove(index);
+            alReceta.remove(index);
             aal.notifyDataSetChanged();
             tostada("Receta eliminada");
         } else if (id == R.id.action_editar) {
@@ -112,7 +110,7 @@ public class Principal extends Activity {
                         tipo = leerxml.nextText();
                     }else if(etiqueta.compareTo("foto")==0){
                         img = leerxml.nextText();
-                        datosv2.add(new Receta(nombre,descri,tipo,img));
+                        alReceta.add(new Receta(nombre, descri, tipo, img));
                     }
                 }
                 evento=leerxml.next();
@@ -131,13 +129,13 @@ public class Principal extends Activity {
         final Receta datosN = new Receta();
         final String nom,desc,tipo;
         Receta datosA = new Receta();
-        datosA = datosv2.get(index);
+        datosA = alReceta.get(index);
         nom = datosA.getNombre();
         desc = datosA.getDescri();
         tipo = datosA.getTipo();
         Intent i = new Intent(this,Editar.class);
         Bundle b=new Bundle();
-        b.putParcelableArrayList("recetas",datosv2);
+        b.putParcelableArrayList("recetas",alReceta);
         i.putExtras(b);
         i.putExtra("id",index);
         i.putExtra("nombre",nom);
