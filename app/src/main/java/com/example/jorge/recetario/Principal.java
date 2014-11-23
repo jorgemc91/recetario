@@ -3,8 +3,10 @@ package com.example.jorge.recetario;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Xml;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,27 +16,39 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
 
 public class Principal extends Activity {
-    private ArrayList<DatosArrayList> datosv2 = new ArrayList<DatosArrayList>();
+    private ArrayList<Receta> datosv2 = new ArrayList<Receta>();
     private AdaptadorArrayList aal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.actividad_principal);
-        initComponents();
-    }
+        //initComponents();
 
+        aal = new AdaptadorArrayList(this, R.layout.lista_detalle, datosv2);
+        final ListView lv = (ListView) findViewById(R.id.lvLista);
+        lv.setAdapter(aal);
+        registerForContextMenu(lv);
+        LeerArchivo();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -55,7 +69,12 @@ public class Principal extends Activity {
         if (id == R.id.action_settings) {
             return true;
         }else if (id == R.id.action_anadir){
-            return anadir();
+            //return anadir();
+            Intent i = new Intent(this,Anadir.class);
+            Bundle b=new Bundle();
+            b.putParcelableArrayList("recetas",datosv2);
+            i.putExtras(b);
+            startActivity(i);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -75,137 +94,56 @@ public class Principal extends Activity {
         return super.onContextItemSelected(item);
     }
 
-    private void initComponents(){
-        DatosArrayList aux = new DatosArrayList();
-        final String nom = "Montaditos de Salmón";
-        final String desc = "En primer lugar picamos la cebolla y la pochamos en una sartén con un poco " +
-                "de aceite de oliva. Mientras tanto picamos el salmón, lo ponemos en un bol.";
-        final String tipo = "Entrante";
-        Drawable img = this.getResources().getDrawable(R.drawable.entrante);
-        aux.setNombre(nom);
-        aux.setDescri(desc);
-        aux.setTipo(tipo);
-        aux.setImg(img);
-        datosv2.add(aux);
-        aal = new AdaptadorArrayList(this, R.layout.lista_detalle, datosv2);
-        final ListView lv = (ListView) findViewById(R.id.lvLista);
-        lv.setAdapter(aal);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView tv = (TextView) view.findViewById(R.id.tvTexto1);
-                Object o = view.getTag();
-                AdaptadorArrayList.viewHolder vh;
-                vh = (AdaptadorArrayList.viewHolder) o;
-                tostada(vh.tv1.getText().toString());
-            }
-        });
-        registerForContextMenu(lv);
-    }
+    private void LeerArchivo(){
+        String nombre="",descri="",img="",tipo="";
+        XmlPullParser leerxml=Xml.newPullParser();
+        try {
+            leerxml.setInput(new FileInputStream(new File(getExternalFilesDir(null),"archivo.xml")),"utf-8");
+            int evento=leerxml.getEventType();
 
-    private boolean anadir() {
-        final DatosArrayList aux = new DatosArrayList();
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(R.string.anadir);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        final View vista = inflater.inflate(R.layout.dialogo_anadir, null);
-        alert.setView(vista);
-        Spinner spinner = (Spinner) vista.findViewById(R.id.sTipo);
-        ArrayAdapter<CharSequence> adaptador = ArrayAdapter.createFromResource(this, R.array.tipos, android.R.layout.simple_spinner_item);
-        adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adaptador);
-        alert.setPositiveButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        EditText et1, et2;
-                        Spinner sp;
-                        Drawable img;
-                        et1 = (EditText) vista.findViewById(R.id.etNombre);
-                        et2 = (EditText) vista.findViewById(R.id.etDescripcion);
-                        sp = (Spinner) vista.findViewById(R.id.sTipo);
-                        String nom = et1.getText().toString();
-                        String desc = et2.getText().toString();
-                        String tipo = String.valueOf(sp.getSelectedItem());
-                        aux.setNombre(nom);
-                        aux.setDescri(desc);
-                        aux.setTipo(tipo);
-                        if (tipo.equals("Entrante")){
-                            img = vista.getResources().getDrawable(R.drawable.entrante);
-                            aux.setImg(img);
-                            datosv2.add(aux);
-                        }else if (tipo.equals("Plato")){
-                            img = vista.getResources().getDrawable(R.drawable.plato);
-                            aux.setImg(img);
-                            datosv2.add(aux);
-                        }else if (tipo.equals("Postre")){
-                            img = vista.getResources().getDrawable(R.drawable.postre);
-                            aux.setImg(img);
-                            datosv2.add(aux);
-                        }
-                        aal.notifyDataSetChanged();
-                        tostada("Receta añadida");
+            while (evento!=XmlPullParser.END_DOCUMENT){
+                if(evento==XmlPullParser.START_TAG){
+                    String etiqueta=leerxml.getName();
+                    if(etiqueta.compareTo("nombre")==0){
+                        nombre = leerxml.nextText();
+                    }else if(etiqueta.compareTo("descripcion")==0){
+                        descri = leerxml.nextText();
+                    }else if(etiqueta.compareTo("tipo")==0){
+                        tipo = leerxml.nextText();
+                    }else if(etiqueta.compareTo("foto")==0){
+                        img = leerxml.nextText();
+                        datosv2.add(new Receta(nombre,descri,tipo,img));
                     }
-                });
-        alert.setNegativeButton(android.R.string.no, null);
-        alert.show();
-        return true;
+                }
+                evento=leerxml.next();
+                aal.notifyDataSetChanged();
+            }
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean editar(final int index) {
-        final DatosArrayList datosN = new DatosArrayList();
-        final EditText et1, et2;
-        final Spinner sp;
-        DatosArrayList datosA = new DatosArrayList();
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(R.string.editar);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        final View vista = inflater.inflate(R.layout.dialogo_anadir, null);
-        alert.setView(vista);
+        final Receta datosN = new Receta();
+        final String nom,desc,tipo;
+        Receta datosA = new Receta();
         datosA = datosv2.get(index);
-        et1 = (EditText) vista.findViewById(R.id.etNombre);
-        et1.setText(datosA.getNombre());
-        et2 = (EditText) vista.findViewById(R.id.etDescripcion);
-        et2.setText(datosA.getDescri());
-        sp = (Spinner) vista.findViewById(R.id.sTipo);
-        ArrayAdapter<CharSequence> adaptador = ArrayAdapter.createFromResource(this, R.array.tipos, android.R.layout.simple_spinner_item);
-        adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sp.setAdapter(adaptador);
-        String Tselect = datosA.getTipo();
-        if(Tselect.equals("Entrante")){sp.setSelection(0);}
-        else if(Tselect.equals("Plato")){sp.setSelection(1);}
-        else if(Tselect.equals("Postre")){sp.setSelection(2);}
-
-        alert.setPositiveButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        Drawable img;
-                        String nom = et1.getText().toString().trim();
-                        String desc = et2.getText().toString().trim();
-                        String tipo = String.valueOf(sp.getSelectedItem());
-                        if(nom.length()>0 || desc.length()>0){
-                            datosN.setNombre(nom);
-                            datosN.setDescri(desc);
-                            datosN.setTipo(tipo);
-                            if (tipo.equals("Entrante")){
-                                img = vista.getResources().getDrawable(R.drawable.entrante);
-                                datosN.setImg(img);
-                                datosv2.set(index,datosN);
-                            }else if (tipo.equals("Plato")){
-                                img = vista.getResources().getDrawable(R.drawable.plato);
-                                datosN.setImg(img);
-                                datosv2.set(index,datosN);
-                            }else if (tipo.equals("Postre")){
-                                img = vista.getResources().getDrawable(R.drawable.postre);
-                                datosN.setImg(img);
-                                datosv2.set(index,datosN);
-                            }
-                            aal.notifyDataSetChanged();
-                            tostada("Receta modificada");
-                        }
-                    }
-                });
-        alert.setNegativeButton(android.R.string.no, null);
-        alert.show();
+        nom = datosA.getNombre();
+        desc = datosA.getDescri();
+        tipo = datosA.getTipo();
+        Intent i = new Intent(this,Editar.class);
+        Bundle b=new Bundle();
+        b.putParcelableArrayList("recetas",datosv2);
+        i.putExtras(b);
+        i.putExtra("id",index);
+        i.putExtra("nombre",nom);
+        i.putExtra("descripcion",desc);
+        i.putExtra("tipo",tipo);
+        startActivity(i);
         return true;
     }
 

@@ -11,18 +11,16 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class AdaptadorArrayList extends ArrayAdapter<DatosArrayList>{
+public class AdaptadorArrayList extends ArrayAdapter<Receta>{
     private Context contexto;
-    private ArrayList<DatosArrayList> lista;
+    private ArrayList<Receta> lista;
     private int recurso;
     static LayoutInflater i;
 
-    public AdaptadorArrayList(Context context, int resource, ArrayList<DatosArrayList> objects) {
+    public AdaptadorArrayList(Context context, int resource, ArrayList<Receta> objects) {
         super(context, resource, objects);
         this.contexto = context;
         this.lista = objects;
@@ -59,7 +57,13 @@ public class AdaptadorArrayList extends ArrayAdapter<DatosArrayList>{
         vh.tv1.setText(lista.get(position).getNombre());
         vh.tv2.setText(lista.get(position).getDescri());
         vh.tv3.setText(lista.get(position).getTipo());
-        vh.iv.setImageDrawable(lista.get(position).getImg());
+        if(lista.get(position).getImg().compareTo("entrante")==0){
+            vh.iv.setImageDrawable(contexto.getResources().getDrawable(R.drawable.entrante));
+        }else if (lista.get(position).getImg().compareTo("plato")==0){
+            vh.iv.setImageDrawable(contexto.getResources().getDrawable(R.drawable.plato));
+        }else if (lista.get(position).getImg().compareTo("postre")==0){
+            vh.iv.setImageDrawable(contexto.getResources().getDrawable(R.drawable.postre));
+        }
         vh.iv.setTag(position);
         vh.iv2.setTag(position);
         TextView tv1 = (TextView) convertView.findViewById(R.id.tvTexto1);
